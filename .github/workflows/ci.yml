@@ -1,7 +1,7 @@
 name: CI/CD Pipeline
 
-on: [push, pull_request]
-
+on: [push, pull_request, workflow_dispatch]
+  
 jobs:
   devsecops-pipeline:
     runs-on: ubuntu-latest
@@ -41,11 +41,19 @@ jobs:
       run: |
         cd frontend
         npm run test -- --watchAll=false
+        
     - name: Debug
       run: |
         echo "PATH: $PATH"
         which docker
         docker --version
+
+    - name: Debug React install
+      run: |
+        cd frontend
+        npm install
+        ls node_modules/react-scripts || echo "react-scripts not found"
+    
     - name: Trivy Scan (Backend)
       uses: aquasecurity/trivy-action@master
       with:
