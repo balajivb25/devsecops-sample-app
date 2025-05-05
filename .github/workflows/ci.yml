@@ -1,0 +1,58 @@
+name: CI/CD Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  devsecops-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install and lint backend
+      run: |
+        cd backend
+        npm install
+        npm run lint
+
+    - name: Test backend
+      run: |
+        cd backend
+        npm run test
+
+    - name: Audit backend dependencies
+      run: |
+        cd backend
+        npm audit --audit-level=moderate || true
+
+    - name: Install and lint frontend
+      run: |
+        cd frontend
+        npm install
+        npm run lint
+
+    - name: Test frontend
+      run: |
+        cd frontend
+        npm run test -- --watchAll=false
+
+    - name: Build Docker images
+      run: |
+        docker build -t devsecops-frontend ./frontend
+        docker build -t devsecops-backend ./backend
+
+    - name: Trivy Scan (Backend)
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'devsecops-backend'
+
+    - name: Trivy Scan (Frontend)
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'devsecops-frontend'
