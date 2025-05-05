@@ -41,6 +41,18 @@ jobs:
       run: |
         cd frontend
         npm run test -- --watchAll=false
+    - name: Debug
+      run: |
+        echo "PATH: $PATH"
+        which docker
+        docker --version
+    - name: Trivy Scan (Backend)
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'devsecops-backend'
+   
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
     - name: Build Docker images
       run: |
